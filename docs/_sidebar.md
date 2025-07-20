@@ -27,7 +27,6 @@
       * [Rs2Widget](api/apidocs/net/runelite/client/plugins/microbot/util/widget/Rs2Widget.html)
     - **Script Examples**
         * [Fighter Script](combat.md)
-        * [Random Trainer](randomtrainer-plugin.md)
     - **Plugin Scheduler**
       * [Overview](scheduler/README.md)
       * [User Guide](scheduler/user-guide.md)

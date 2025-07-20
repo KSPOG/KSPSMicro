@@ -5,10 +5,9 @@ import net.runelite.api.ItemComposition;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.questhelper.requirements.item.ItemRequirement;
-import net.runelite.client.plugins.microbot.util.grandexchange.GrandExchangeSlots;
+import net.runelite.client.plugins.microbot.util.grandexchange.GrandExchangeAction;
+import net.runelite.client.plugins.microbot.util.grandexchange.GrandExchangeRequest;
 import net.runelite.client.plugins.microbot.util.grandexchange.Rs2GrandExchange;
-import net.runelite.client.plugins.microbot.util.item.Rs2ItemManager;
-import org.apache.commons.lang3.tuple.Pair;
 import net.runelite.client.plugins.microbot.questhelper.QuestHelperPlugin;
 
 import java.util.*;
@@ -23,8 +22,7 @@ public class AutoBuyerScript extends Script {
     private static int initialCount = 0;
     private static int totalBought = 0;
     private static Map<String, Integer> itemsList;
-    private int percent = 0;
-    private final Rs2ItemManager itemManager = new Rs2ItemManager();
+    private Integer percent = null;
 
     public boolean run(AutoBuyerConfig config) {
 
@@ -69,7 +67,8 @@ public class AutoBuyerScript extends Script {
                     initialCount = itemsList.size();
                     initialized = true;
 
-                    percent = config.pricePerItem().getValue();
+					percent = config.pricePerItem().getValue();
+
                     if (!isRunning())
                         return;
                 }
@@ -84,7 +83,7 @@ public class AutoBuyerScript extends Script {
                     // Try to collect items to bank to free up slots
                     if (!hasFreeSlots()) {
                         if (canFreeUpSlots()) {
-                            Rs2GrandExchange.collectToBank();
+                            Rs2GrandExchange.collectAllToBank();
                             Microbot.log("Items bought from G.E. are collected to your bank.");
                         } else {
                             Microbot.log("All G.E. slots are in use, either abort or wait until one comes available.");
@@ -92,18 +91,20 @@ public class AutoBuyerScript extends Script {
                         }
                     }
 
-                    int basePrice = itemManager.getGEPrice(itemName);
-                    if (basePrice <= 0) {
-                        Microbot.log("Price lookup failed for " + itemName);
-                        return;
-                    }
-                    int price = (int) Math.ceil(basePrice * (1 + percent / 100.0));
-                    boolean result = Rs2GrandExchange.buyItem(itemName, price, quantity);
+					GrandExchangeRequest request = GrandExchangeRequest.builder()
+						.action(GrandExchangeAction.BUY)
+						.itemName(itemName)
+						.quantity(quantity)
+						.percent(percent)
+						.build();
+
+					boolean result = Rs2GrandExchange.processOffer(request);
 
                     if (!result) {
                         Microbot.log("Could not buy '" + itemName + "'. Skipping it.");
                         Rs2GrandExchange.backToOverview();
                     }
+
                     itemsList.remove(itemName); // Remove from list so we don't buy the same item again
                     totalBought++;
                 });
@@ -143,8 +144,7 @@ public class AutoBuyerScript extends Script {
     }
 
     private boolean hasFreeSlots() {
-        Pair<GrandExchangeSlots, Integer> availableSlots = Rs2GrandExchange.getAvailableSlot();
-        return Integer.parseInt(String.valueOf(availableSlots.getRight())) > 0;
+        return Rs2GrandExchange.getAvailableSlot() != null;
     }
 
 
@@ -185,7 +185,7 @@ public class AutoBuyerScript extends Script {
         initialCount = 0;
         totalBought = 0;
         itemsList.clear();
-        percent = 0;
+        percent = null;
         super.shutdown();
     }
 
