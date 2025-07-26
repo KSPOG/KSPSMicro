@@ -55,6 +55,11 @@ public class BankSellerScript extends Script {
     }
 
     private boolean handleBank() {
+        if (Rs2GrandExchange.isOpen()) {
+            Rs2GrandExchange.closeExchange();
+            sleepUntil(() -> !Rs2GrandExchange.isOpen());
+        }
+
         if (!Rs2Bank.isOpen()) {
             Rs2Bank.useBank();
             sleepUntil(Rs2Bank::isOpen);
@@ -125,9 +130,11 @@ public class BankSellerScript extends Script {
                 if (!item.isTradeable()) {
                     continue;
 
+
             Rs2Inventory.items().forEachOrdered(item -> {
                 if (!item.isTradeable()) {
                     return;
+
                 }
 
                 String name = item.getName();
@@ -145,6 +152,7 @@ public class BankSellerScript extends Script {
                 }
 
                 int sellPrice = (int) (basePrice * 0.85);
+
                     return;
                 }
 
@@ -159,6 +167,7 @@ public class BankSellerScript extends Script {
 
                 int sellPrice = (int) (price * 0.85);
 
+
                 GrandExchangeRequest request = GrandExchangeRequest.builder()
                         .action(GrandExchangeAction.SELL)
                         .itemName(name)
@@ -167,6 +176,10 @@ public class BankSellerScript extends Script {
                         .build();
 
                 Rs2GrandExchange.processOffer(request);
+
+                itemsSold += item.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
 
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
@@ -182,6 +195,7 @@ public class BankSellerScript extends Script {
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(300, 600);
+
             }
         }
     }
