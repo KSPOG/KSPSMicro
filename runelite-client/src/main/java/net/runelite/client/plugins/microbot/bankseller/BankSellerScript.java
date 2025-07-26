@@ -72,8 +72,8 @@ public class BankSellerScript extends Script {
         boolean withdrew = false;
 
         while (!Rs2Inventory.isFull()) {
-            Rs2ItemModel nextItem = Rs2Bank.bankItems()
-                    .filter(item -> item.isTradeable())
+            Rs2ItemModel nextItem = Rs2Bank.bankItems().stream()
+                    .filter(Rs2ItemModel::isTradeable)
                     .filter(item -> !item.getName().equalsIgnoreCase("Coins"))
                     .filter(item -> blacklist.stream().noneMatch(b -> b.equalsIgnoreCase(item.getName())))
                     .findFirst()
