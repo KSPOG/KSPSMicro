@@ -126,6 +126,13 @@ public class BankSellerScript extends Script {
                 }
             }
 
+            for (Rs2ItemModel invItem : Rs2Inventory.all()) {
+                if (!invItem.isTradeable()) {
+                    continue;
+                }
+
+                String name = invItem.getName();
+
             for (Rs2ItemModel item : Rs2Inventory.all()) {
                 if (!item.isTradeable()) {
                     continue;
@@ -138,6 +145,7 @@ public class BankSellerScript extends Script {
                 }
 
                 String name = item.getName();
+
                 if (name.equalsIgnoreCase("Coins")) {
                     continue;
                 }
@@ -146,6 +154,7 @@ public class BankSellerScript extends Script {
                     continue;
                 }
 
+                int basePrice = Rs2GrandExchange.getPrice(invItem.getId());
                 int basePrice = Rs2GrandExchange.getPrice(item.getId());
                 if (basePrice <= 0) {
                     basePrice = 1;
@@ -153,6 +162,10 @@ public class BankSellerScript extends Script {
 
                 int sellPrice = (int) (basePrice * 0.85);
 
+                GrandExchangeRequest request = GrandExchangeRequest.builder()
+                        .action(GrandExchangeAction.SELL)
+                        .itemName(name)
+                        .quantity(invItem.getQuantity())
                     return;
                 }
 
@@ -177,6 +190,9 @@ public class BankSellerScript extends Script {
 
                 Rs2GrandExchange.processOffer(request);
 
+                itemsSold += invItem.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(config.actionDelay(), config.actionDelay() + 300);
@@ -195,7 +211,6 @@ public class BankSellerScript extends Script {
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(300, 600);
-
             }
         }
     }
