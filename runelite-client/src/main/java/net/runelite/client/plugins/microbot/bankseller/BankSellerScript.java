@@ -123,6 +123,11 @@ public class BankSellerScript extends Script {
             for (Rs2ItemModel item : Rs2Inventory.all()) {
                 if (!item.isTradeable()) {
                     continue;
+
+            Rs2Inventory.items().forEachOrdered(item -> {
+                if (!item.isTradeable()) {
+                    return;
+
                 }
 
                 String name = item.getName();
@@ -140,6 +145,19 @@ public class BankSellerScript extends Script {
                 }
 
                 int sellPrice = (int) (basePrice * 0.85);
+                    return;
+                }
+
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) {
+                    return;
+                }
+
+                int price = Rs2GrandExchange.getPrice(item.getId());
+                if (price <= 0) {
+                    price = 1;
+                }
+
+                int sellPrice = (int) (price * 0.85);
 
                 GrandExchangeRequest request = GrandExchangeRequest.builder()
                         .action(GrandExchangeAction.SELL)
@@ -149,6 +167,14 @@ public class BankSellerScript extends Script {
                         .build();
 
                 Rs2GrandExchange.processOffer(request);
+
+                if (name.equalsIgnoreCase("Coins")) return;
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) return;
+
+                int price = Rs2GrandExchange.getPrice(item.getId());
+                if (price <= 0) price = 1;
+                int sellPrice = (int) (price * 0.85); // low price for quick sale
+                Rs2GrandExchange.sellItem(name, item.getQuantity(), sellPrice);
 
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
