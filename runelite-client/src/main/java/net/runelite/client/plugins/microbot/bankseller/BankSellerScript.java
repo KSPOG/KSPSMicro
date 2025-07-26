@@ -72,8 +72,8 @@ public class BankSellerScript extends Script {
         boolean withdrew = false;
 
         while (!Rs2Inventory.isFull()) {
-            Rs2ItemModel nextItem = Rs2Bank.bankItems()
-                    .filter(item -> item.isTradeable())
+            Rs2ItemModel nextItem = Rs2Bank.bankItems().stream()
+                    .filter(Rs2ItemModel::isTradeable)
                     .filter(item -> !item.getName().equalsIgnoreCase("Coins"))
                     .filter(item -> blacklist.stream().noneMatch(b -> b.equalsIgnoreCase(item.getName())))
                     .findFirst()
@@ -114,10 +114,12 @@ public class BankSellerScript extends Script {
                 String name = item.getName();
                 if (name.equalsIgnoreCase("Coins")) return;
                 if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) return;
+
                 int price = Rs2GrandExchange.getPrice(item.getId());
                 if (price <= 0) price = 1;
-                int sellPrice = (int)(price * 0.85); // low price for quick sale
+                int sellPrice = (int) (price * 0.85); // low price for quick sale
                 Rs2GrandExchange.sellItem(name, item.getQuantity(), sellPrice);
+
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(300, 600);
