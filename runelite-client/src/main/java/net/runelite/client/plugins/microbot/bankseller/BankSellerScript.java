@@ -57,14 +57,21 @@ public class BankSellerScript extends Script {
             return;
         }
 
+        if (!Rs2Inventory.isEmpty()) {
+            Rs2Bank.depositAll();
+            sleepUntil(Rs2Inventory::isEmpty);
+        }
+
+        Rs2Bank.setWithdrawAsNote();
+
         for (Rs2ItemModel item : Rs2Bank.bankItems()) {
+            if (Rs2Inventory.isFull()) break;
             if (!item.isTradeable()) continue;
             String name = item.getName();
             if (name.equalsIgnoreCase("Coins")) continue;
             if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) continue;
             if (Rs2Bank.withdrawAll(name)) {
                 sleepUntil(() -> Rs2Inventory.hasItem(name));
-                break;
             }
         }
         Rs2Bank.closeBank();
