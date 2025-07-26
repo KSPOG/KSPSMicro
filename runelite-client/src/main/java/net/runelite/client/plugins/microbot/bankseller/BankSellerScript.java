@@ -132,6 +132,20 @@ public class BankSellerScript extends Script {
                 }
 
                 String name = invItem.getName();
+
+            for (Rs2ItemModel item : Rs2Inventory.all()) {
+                if (!item.isTradeable()) {
+                    continue;
+
+
+            Rs2Inventory.items().forEachOrdered(item -> {
+                if (!item.isTradeable()) {
+                    return;
+
+                }
+
+                String name = item.getName();
+
                 if (name.equalsIgnoreCase("Coins")) {
                     continue;
                 }
@@ -141,6 +155,7 @@ public class BankSellerScript extends Script {
                 }
 
                 int basePrice = Rs2GrandExchange.getPrice(invItem.getId());
+                int basePrice = Rs2GrandExchange.getPrice(item.getId());
                 if (basePrice <= 0) {
                     basePrice = 1;
                 }
@@ -151,6 +166,25 @@ public class BankSellerScript extends Script {
                         .action(GrandExchangeAction.SELL)
                         .itemName(name)
                         .quantity(invItem.getQuantity())
+                    return;
+                }
+
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) {
+                    return;
+                }
+
+                int price = Rs2GrandExchange.getPrice(item.getId());
+                if (price <= 0) {
+                    price = 1;
+                }
+
+                int sellPrice = (int) (price * 0.85);
+
+
+                GrandExchangeRequest request = GrandExchangeRequest.builder()
+                        .action(GrandExchangeAction.SELL)
+                        .itemName(name)
+                        .quantity(item.getQuantity())
                         .price(sellPrice)
                         .build();
 
@@ -159,6 +193,24 @@ public class BankSellerScript extends Script {
                 itemsSold += invItem.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(config.actionDelay(), config.actionDelay() + 300);
+                itemsSold += item.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
+
+                itemsSold += item.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
+                if (name.equalsIgnoreCase("Coins")) return;
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) return;
+
+                int price = Rs2GrandExchange.getPrice(item.getId());
+                if (price <= 0) price = 1;
+                int sellPrice = (int) (price * 0.85); // low price for quick sale
+                Rs2GrandExchange.sellItem(name, item.getQuantity(), sellPrice);
+
+                itemsSold += item.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(300, 600);
             }
         }
     }
