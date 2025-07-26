@@ -56,10 +56,9 @@ public class BankSellerScript extends Script {
         if (!Rs2Bank.isOpen()) {
             Rs2Bank.useBank();
             sleepUntil(Rs2Bank::isOpen);
-        }
-
-        if (!Rs2Bank.isOpen()) {
-            return false;
+            if (!Rs2Bank.isOpen()) {
+                return true; // keep script running until bank is reachable
+            }
         }
 
         if (!Rs2Inventory.isEmpty()) {
@@ -92,8 +91,13 @@ public class BankSellerScript extends Script {
             }
         }
 
+        boolean hasMore = Rs2Bank.bankItems().stream()
+                .anyMatch(item -> item.isTradeable()
+                        && !item.getName().equalsIgnoreCase("Coins")
+                        && blacklist.stream().noneMatch(b -> b.equalsIgnoreCase(item.getName())));
+
         Rs2Bank.closeBank();
-        return withdrew;
+        return withdrew || hasMore;
     }
 
     private void handleSelling() {
