@@ -88,6 +88,7 @@ public class BankSellerScript extends Script {
             if (Rs2Bank.withdrawAll(name)) {
                 withdrew = true;
                 sleepUntil(() -> Rs2Inventory.hasItem(name));
+                sleep(config.actionDelay(), config.actionDelay() + 200);
             } else {
                 break;
             }
@@ -127,7 +128,6 @@ public class BankSellerScript extends Script {
             Rs2Inventory.items().forEachOrdered(item -> {
                 if (!item.isTradeable()) {
                     return;
-
                 }
 
                 String name = item.getName();
@@ -168,6 +168,9 @@ public class BankSellerScript extends Script {
 
                 Rs2GrandExchange.processOffer(request);
 
+                itemsSold += item.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
                 if (name.equalsIgnoreCase("Coins")) return;
                 if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) return;
 
