@@ -120,13 +120,31 @@ public class BankSellerScript extends Script {
                 }
             }
 
+            for (Rs2ItemModel item : Rs2Inventory.all()) {
+                if (!item.isTradeable()) {
+                    continue;
+
             Rs2Inventory.items().forEachOrdered(item -> {
                 if (!item.isTradeable()) {
                     return;
+
                 }
 
                 String name = item.getName();
                 if (name.equalsIgnoreCase("Coins")) {
+                    continue;
+                }
+
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) {
+                    continue;
+                }
+
+                int basePrice = Rs2GrandExchange.getPrice(item.getId());
+                if (basePrice <= 0) {
+                    basePrice = 1;
+                }
+
+                int sellPrice = (int) (basePrice * 0.85);
                     return;
                 }
 
@@ -161,7 +179,7 @@ public class BankSellerScript extends Script {
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(300, 600);
-            });
+            }
         }
     }
 }
