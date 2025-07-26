@@ -78,20 +78,24 @@ public class BankSellerScript extends Script {
         boolean withdrew = false;
 
         while (!Rs2Inventory.isFull()) {
+            Rs2ItemModel bankItem = Rs2Bank.bankItems().stream()
+
             Rs2ItemModel nextItem = Rs2Bank.bankItems().stream()
+
                     .filter(Rs2ItemModel::isTradeable)
                     .filter(item -> !item.getName().equalsIgnoreCase("Coins"))
                     .filter(item -> blacklist.stream().noneMatch(b -> b.equalsIgnoreCase(item.getName())))
                     .findFirst()
                     .orElse(null);
 
-            if (nextItem == null) {
+            if (bankItem == null) {
                 break;
             }
 
-            String name = nextItem.getName();
-            if (Rs2Bank.withdrawAll(name)) {
+            String bankItemName = bankItem.getName();
+            if (Rs2Bank.withdrawAll(bankItemName)) {
                 withdrew = true;
+                sleepUntil(() -> Rs2Inventory.hasItem(bankItemName));
                 sleepUntil(() -> Rs2Inventory.hasItem(name));
                 sleep(config.actionDelay(), config.actionDelay() + 200);
             } else {
@@ -125,7 +129,32 @@ public class BankSellerScript extends Script {
                     continue;
                 }
             }
+            for (Rs2ItemModel itemToSell : Rs2Inventory.all()) {
+                if (!itemToSell.isTradeable()) {
+                    continue;
+                }
 
+                String itemName = itemToSell.getName();
+                if (itemName.equalsIgnoreCase("Coins")) {
+                    continue;
+                }
+
+                if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(itemName))) {
+                    continue;
+                }
+
+                int itemPrice = Rs2GrandExchange.getPrice(itemToSell.getId());
+                if (itemPrice <= 0) {
+                    itemPrice = 1;
+                }
+
+                int offerPrice = (int) (itemPrice * 0.85);
+
+                GrandExchangeRequest request = GrandExchangeRequest.builder()
+                        .action(GrandExchangeAction.SELL)
+                        .itemName(itemName)
+                        .quantity(itemToSell.getQuantity())
+                        .price(offerPrice)
             for (Rs2ItemModel invItem : Rs2Inventory.all()) {
                 if (!invItem.isTradeable()) {
                     continue;
@@ -190,6 +219,9 @@ public class BankSellerScript extends Script {
 
                 Rs2GrandExchange.processOffer(request);
 
+                itemsSold += itemToSell.getQuantity();
+                sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
+                sleep(config.actionDelay(), config.actionDelay() + 300);
                 itemsSold += invItem.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(config.actionDelay(), config.actionDelay() + 300);
