@@ -57,6 +57,8 @@ public class BankSellerScript extends Script {
             return;
         }
 
+        Rs2Bank.setWithdrawAsNote();
+
         for (Rs2ItemModel item : Rs2Bank.bankItems()) {
             if (!item.isTradeable()) continue;
             String name = item.getName();
