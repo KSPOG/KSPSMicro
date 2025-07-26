@@ -68,6 +68,7 @@ public @interface PluginDescriptor
 	String Maxxin = "<html>[<font color='#8B0000'>MX</font>] ";
 	String Hal = "<html>[<font color=#000000>Hal</font>] ";
 	String Funk = "<html>[<font color=#ffff1a>\uD83C\uDF19</font>] ";
+	String KSP = "<html>[<font color=#ffff1a>Kirito</font>] ";
 
 
 	String name();
