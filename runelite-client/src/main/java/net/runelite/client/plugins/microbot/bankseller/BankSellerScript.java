@@ -4,6 +4,8 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.grandexchange.Rs2GrandExchange;
+import net.runelite.client.plugins.microbot.util.grandexchange.GrandExchangeAction;
+import net.runelite.client.plugins.microbot.util.grandexchange.GrandExchangeRequest;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 
@@ -114,10 +116,19 @@ public class BankSellerScript extends Script {
                 String name = item.getName();
                 if (name.equalsIgnoreCase("Coins")) return;
                 if (blacklist.stream().anyMatch(b -> b.equalsIgnoreCase(name))) return;
+
                 int price = Rs2GrandExchange.getPrice(item.getId());
                 if (price <= 0) price = 1;
-                int sellPrice = (int)(price * 0.85); // low price for quick sale
-                Rs2GrandExchange.sellItem(name, item.getQuantity(), sellPrice);
+                int sellPrice = (int) (price * 0.85); // low price for quick sale
+
+                GrandExchangeRequest request = GrandExchangeRequest.builder()
+                        .action(GrandExchangeAction.SELL)
+                        .itemName(name)
+                        .quantity(item.getQuantity())
+                        .price(sellPrice)
+                        .build();
+                Rs2GrandExchange.processOffer(request);
+
                 itemsSold += item.getQuantity();
                 sleepUntil(() -> !Rs2GrandExchange.isOfferScreenOpen());
                 sleep(300, 600);
